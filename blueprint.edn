@@ -1,0 +1,47 @@
+{:itonami.blueprint/id "cloud-itonami-isic-3811"
+ :itonami.blueprint/name "Collection of non-hazardous waste"
+ :itonami.blueprint/isic-rev5 "3811"
+ :itonami.blueprint/domain :utilities/non-hazardous-waste-collection
+ :itonami.blueprint/license "AGPL-3.0-or-later"
+ :itonami.blueprint/social-impact [:environmental-protection :public-health :operational-transparency]
+ :itonami.blueprint/governor :waste-dispatch-governor
+ :itonami.blueprint/robotics false
+ :itonami.blueprint/required-technologies [:identity :forms :dmn :bpmn :audit-ledger]
+ :itonami.blueprint/status :public-oss
+ :itonami.blueprint/maturity :implemented
+ :itonami.blueprint/implemented-slice
+ "WasteDispatch-LLM (sealed advisor) ⊣ WasteDispatchGovernor (independent
+  censor), a genuinely compiled langgraph-clj StateGraph
+  (wastecollect.operation/build: :intake -> :advise -> :govern -> :decide
+  -+-> :commit / :request-approval -> :commit / :hold, with
+  `interrupt-before #{:request-approval}` + checkpointer for real
+  human-in-the-loop resume). Eight governor checks (wastecollect.policy)
+  gate every schedule/record/disclosure/dispute: rbac,
+  hazard-misclassification-gate and facility-permit-capacity-gate
+  (domain-unique HARD checks — no analog in sibling actors),
+  source-provenance-gate, licensed-disclosure, confidence floor,
+  bulk-volume gate, dispute-request-always-escalates. Schedules pickups,
+  records collection manifests and serves client reports for
+  non-hazardous waste generators/facilities only — a pickup carrying ANY
+  hazard flag is structurally rejected by the
+  hazard-misclassification-gate at any confidence, regardless of phase;
+  no field anywhere in the schema exists for hazardous-waste handling,
+  storage or transport (ADR-2607113200 §1). Real regulatory-provenance
+  catalog (wastecollect.facts): US RCRA, EU Waste Framework Directive,
+  Japan's 廃棄物処理法 — every classification claim must cite one of these,
+  none fabricated. Append-only audit ledger (wastecollect.store/ledger +
+  append-ledger!), Store protocol with MemStore (default) and
+  DatomicStore (langchain.db) backends proven to the same contract
+  (store_contract_test.clj); DatomicStore's EDN-blob codec uses
+  kotoba-lang/langchain-store's shared `ls/enc` / `ls/dec*` rather than a
+  bespoke pr-str/edn-read-string pair. Phase 0->3 staged-autonomy gate
+  (wastecollect.phase), conservative default-phase=1 from initial
+  implementation, that can only narrow — never widen — what the governor
+  already allows. 33 tests / 126 assertions green
+  (`clojure -M:dev:test`), clj-kondo 0 errors/warnings
+  (`clojure -M:lint`), demo runnable end-to-end (`clojure -M:dev:run`,
+  8-operation walkthrough through one OperationActor). Deliberately
+  distinct from cloud-itonami-isic-3822 (treatment/disposal of hazardous
+  waste): this actor dispatches non-hazardous streams only, 3822 treats/
+  disposes hazardous waste under RCRA Subtitle C / the EU Waste Shipment
+  Regulation / the Basel Convention."}
