@@ -4,7 +4,14 @@
  ;; the kotoba-lang org of this workspace (kotoba wasm → clojurewasm →
  ;; ClojureScript → nbb runtime priority, CLAUDE.md).
  :deps {io.github.kotoba-lang/langgraph
-        {:local/root "../../kotoba-lang/langgraph"}}
+        {:local/root "../../kotoba-lang/langgraph"}
+        ;; langchain-store: the shared langchain.db store seam (EDN-blob
+        ;; codec + identity schema + event-log read/append helpers) that
+        ;; ~190 cloud-itonami actors hand-roll (ADR-2607141600);
+        ;; wastecollect.store's DatomicStore uses it instead of its own
+        ;; enc/dec* two-liner.
+        io.github.kotoba-lang/langchain-store
+        {:local/root "../../kotoba-lang/langchain-store"}}
  :aliases
  {;; offline workspace dev — pin transitive langchain to local checkout
   :dev {:override-deps

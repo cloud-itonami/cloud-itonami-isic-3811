@@ -25,10 +25,9 @@
   The ledger stays append-only on every backend — 'who scheduled/recorded
   what, on what facility capacity/classification basis' is always a query
   over an immutable log."
-  (:require #?(:clj  [clojure.edn :as edn]
-               :cljs [cljs.reader :as edn])
-            [clojure.string :as str]
-            [langchain.db :as d]))
+  (:require [clojure.string :as str]
+            [langchain.db :as d]
+            [langchain-store.core :as ls]))
 
 (defprotocol Store
   (generator [s id])
@@ -127,8 +126,12 @@
    :intake/key       {:db/unique :db.unique/identity}
    :ledger/seq       {:db/unique :db.unique/identity}})
 
-(defn- enc [v] (pr-str v))
-(defn- dec* [s] (when s (edn/read-string s)))
+;; EDN-blob codec (compound values stored as EDN strings so langchain.db
+;; doesn't expand them into sub-entities) -- the shared kotoba-lang/
+;; langchain-store seam ~190 cloud-itonami actors otherwise hand-roll
+;; identically (ADR-2607141600), not a bespoke codec for this store.
+(defn- enc [v] (ls/enc v))
+(defn- dec* [s] (ls/dec* s))
 
 (defn- generator->tx [{:keys [id name jurisdiction]}]
   (cond-> {:generator/id id}
