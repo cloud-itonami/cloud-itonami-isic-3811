@@ -93,6 +93,17 @@
           :detail (str "危険物フラグが立っている非危険物収集への計上は不可: " (vec flags))}]))))
 
 (defn- facility-permit-capacity-violations
+  "The facility's permitted daily intake capacity per waste-class.
+
+  `estimated-kg` used to be defaulted with `(or estimated-kg 0M)`, which
+  meant an unweighed pickup contributed ZERO to the running intake and
+  therefore always passed the permit-capacity check -- fail-open on an
+  environmental permit limit. A non-numeric weight was worse: it reached
+  `+` and threw a ClassCastException out of the governor itself.
+
+  A weight that is not a number cannot be added to the day's intake, so
+  the capacity check cannot be performed, so it is a violation. Not a
+  zero, and not a crash."
   [{:keys [op]} proposal st]
   (when (= op :pickup/schedule)
     (let [{:keys [facility-id waste-class estimated-kg]} (:value proposal)
@@ -103,7 +114,12 @@
         [{:rule :facility-permit-capacity-gate
           :detail (str "施設 " facility-id " は waste-class " waste-class " の許可を保有しない")}]
 
-        (> (+ (store/facility-intake st facility-id waste-class) (or estimated-kg 0M)) cap)
+        (not (number? estimated-kg))
+        [{:rule :facility-permit-capacity-gate
+          :detail (str "estimated-kg が数値でない(" (pr-str estimated-kg) ") -- "
+                       "許可容量に対する検算ができないため計上しない")}]
+
+        (> (+ (store/facility-intake st facility-id waste-class) estimated-kg) cap)
         [{:rule :facility-permit-capacity-gate
           :detail (str "施設 " facility-id " の " waste-class " 許可容量超過: "
                        "current=" (store/facility-intake st facility-id waste-class)
@@ -133,9 +149,28 @@
               :detail (str "契約 tier " (:tier c) " に対し過剰な列: " (vec extra))}]))))))
 
 (defn- bulk?
+  "A `:pickup/schedule` proposal is treated as bulk -- and so reaches a
+  human -- unless its `:estimated-kg` can be established to be BELOW
+  `bulk-threshold-kg`.
+
+  Note the direction. This used to be
+  `(some-> (get-in proposal [:value :estimated-kg]) (>= bulk-threshold-kg))`,
+  which read the weight out of the advisor's OWN proposal and, because
+  `some->` short-circuits on nil, returned nil when the field was
+  ABSENT -- so a pickup carrying no estimated weight at all was
+  classified as non-bulk and skipped the bulk review entirely.
+
+  There is nothing to recompute the estimate against at scheduling
+  time: `wastecollect.store`'s manifest is the weight recorded once the
+  waste has actually been collected, which is after this decision. A
+  self-declared estimate therefore cannot be verified, and an
+  unverifiable number is worthless as a DE-escalation signal -- it may
+  raise the alarm, it must never silence it."
   [{:keys [op]} proposal]
-  (and (= op :pickup/schedule)
-       (some-> (get-in proposal [:value :estimated-kg]) (>= bulk-threshold-kg))))
+  (when (= op :pickup/schedule)
+    (let [kg (get-in proposal [:value :estimated-kg])]
+      (or (not (number? kg))
+          (>= kg bulk-threshold-kg)))))
 
 (defn check
   "Censors a WasteDispatch-LLM proposal against the policy tables. Returns

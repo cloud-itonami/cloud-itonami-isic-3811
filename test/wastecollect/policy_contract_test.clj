@@ -189,3 +189,72 @@
                coordinator)
       (is (= 2 (count (store/ledger db)))
           "one commit + one hold, both recorded"))))
+
+;; ---------------------------------------------------------------------------
+;; The bulk gate must not read the number it exists to doubt
+;; ---------------------------------------------------------------------------
+
+(deftest omitting-the-weight-no-longer-skips-the-bulk-review
+  (testing "`(some-> kg (>= threshold))` returned nil when :estimated-kg was
+            ABSENT, so a pickup carrying no weight at all was classified
+            non-bulk and skipped the bulk review entirely"
+    (let [[db actor] (fresh)
+          res (exec-op actor "t-nokg"
+                       {:op :pickup/schedule :subject "pk-900" :id "pk-900"
+                        :generator-id "gen-100" :facility-id "fac-100"
+                        :waste-class :general
+                        :scheduled-date "2026-07-10" :source clean-source}
+                       coordinator)]
+      (is (not= :commit (get-in res [:state :disposition]))
+          "an unweighed pickup must reach a human, not auto-commit")
+      (is (some? db)))))
+
+(deftest a-non-numeric-weight-escalates-rather-than-being-compared
+  (let [[_ actor] (fresh)
+        res (exec-op actor "t-badkg"
+                     {:op :pickup/schedule :subject "pk-901" :id "pk-901"
+                      :generator-id "gen-100" :facility-id "fac-100"
+                      :waste-class :general :estimated-kg "300"
+                      :scheduled-date "2026-07-10" :source clean-source}
+                     coordinator)]
+    (is (not= :commit (get-in res [:state :disposition]))
+        "a non-numeric weight must not be silently treated as non-bulk")))
+
+(deftest a-small-numeric-weight-still-commits
+  (testing "the gate is not simply always-on: a present, numeric, below-threshold
+            weight is the one case it stands down for"
+    (let [[_ actor] (fresh)
+          res (exec-op actor "t-smallkg"
+                       {:op :pickup/schedule :subject "pk-902" :id "pk-902"
+                        :generator-id "gen-100" :facility-id "fac-100"
+                        :waste-class :general :estimated-kg 300M
+                        :scheduled-date "2026-07-10" :source clean-source}
+                       coordinator)]
+      (is (= :commit (get-in res [:state :disposition]))))))
+
+(deftest an-unweighed-pickup-does-not-count-as-zero-against-the-permit
+  (testing "`(or estimated-kg 0M)` meant an unweighed pickup contributed ZERO to
+            the facility's daily intake and so always passed the environmental
+            permit-capacity check -- fail-open on a permit limit"
+    (let [[db actor] (fresh)
+          res (exec-op actor "t-permit"
+                       {:op :pickup/schedule :subject "pk-903" :id "pk-903"
+                        :generator-id "gen-100" :facility-id "fac-100"
+                        :waste-class :general
+                        :scheduled-date "2026-07-10" :source clean-source}
+                       coordinator)]
+      (is (= :hold (get-in res [:state :disposition])))
+      (is (some #{:facility-permit-capacity-gate} (-> (store/ledger db) last :basis))))))
+
+(deftest a-non-numeric-weight-does-not-crash-the-governor
+  (testing "it used to reach `+` and throw a ClassCastException out of the
+            governor itself"
+    (let [[db actor] (fresh)
+          res (exec-op actor "t-crash"
+                       {:op :pickup/schedule :subject "pk-904" :id "pk-904"
+                        :generator-id "gen-100" :facility-id "fac-100"
+                        :waste-class :general :estimated-kg "300"
+                        :scheduled-date "2026-07-10" :source clean-source}
+                       coordinator)]
+      (is (= :hold (get-in res [:state :disposition])))
+      (is (some #{:facility-permit-capacity-gate} (-> (store/ledger db) last :basis))))))
