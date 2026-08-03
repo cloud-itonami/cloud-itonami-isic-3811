@@ -11,7 +11,12 @@
         ;; wastecollect.store's DatomicStore uses it instead of its own
         ;; enc/dec* two-liner.
         io.github.kotoba-lang/langchain-store
-        {:local/root "../../kotoba-lang/langchain-store"}}
+        {:local/root "../../kotoba-lang/langchain-store"}
+        ;; carrier-licence-gate の判定元(cited fact table)。この actor は
+        ;; 「この pickup は安全か」しか見ていなかったので、「そもそも運搬して
+        ;; よいのか」を答える層を外から入れる。ここで法的結論を再実装しない。
+        io.github.cloud-itonami/cloud-itonami-licensed-operator
+        {:local/root "../cloud-itonami-licensed-operator"}}
  :aliases
  {;; offline workspace dev — pin transitive langchain to local checkout
   :dev {:override-deps

@@ -15,7 +15,12 @@
   (let [db (store/seed-db)]
     [db (op/build db)]))
 
-(def coordinator {:actor-id "dc-1" :actor-role :dispatch-coordinator :phase 3})
+;; carrier-licence-gate(HARD)を通すための宣言。この actor の他の不変条件を
+;; 観測するには、まず「運搬してよい事業者」である必要がある —— 未宣言だと
+;; deny-by-default で全て HOLD になり、他の gate が観測できなくなる。
+(def licensed {:licence-held? true :attestations #{:route/principal}})
+
+(def coordinator (merge licensed {:actor-id "dc-1" :actor-role :dispatch-coordinator :phase 3}))
 (def officer     {:actor-id "do-1" :actor-role :dispute-officer :phase 3})
 
 (defn- exec-op [actor tid request context]
@@ -42,7 +47,7 @@
                     {:op :pickup/schedule :subject "pk-300" :id "pk-300"
                      :generator-id "gen-100" :facility-id "fac-100" :waste-class :general
                      :estimated-kg 300M :scheduled-date "2026-07-10" :source clean-source}
-                    {:actor-id "cl-1" :actor-role :client-user})]
+                    (merge licensed {:actor-id "cl-1" :actor-role :client-user}))]
       (is (= :hold (get-in res [:state :disposition])))
       (is (nil? (store/pickup db "pk-300")) "SSoT unchanged")
       (is (= [:rbac] (-> (store/ledger db) first :basis))))))
