@@ -8,7 +8,10 @@
             [wastecollect.store :as store]
             [wastecollect.operation :as op]))
 
-(def coordinator {:actor-id "dc-1" :actor-role :dispatch-coordinator})
+;; carrier-licence-gate(HARD)を通すための宣言 —— phase gate の挙動を観測する
+;; には、まず licence gate を通っている必要がある。
+(def coordinator {:actor-id "dc-1" :actor-role :dispatch-coordinator
+                  :licence-held? true :attestations #{:route/principal}})
 (def crew        {:actor-id "cr-1" :actor-role :collection-crew})
 (def officer     {:actor-id "do-1" :actor-role :dispute-officer})
 
