@@ -23,7 +23,7 @@
 
   We do not re-derive any legal conclusion here. If this ns starts making
   its own judgements, the citations stop matching the verdict."
-  (:require [clojure.string :as str]
+  (:require [kotoba.lang.text :as str]
             [cloud-itonami.licensed-operator.gate :as gate]))
 
 (def sector
@@ -34,7 +34,7 @@
   "This store's `:jurisdiction` keywords → licensed-operator catalog ids.
 
   A CLOSED map on purpose. An unmapped keyword resolves to nil and the
-  gate blocks — the alternative (`(str/upper-case (name k))`) would
+  gate blocks — the alternative (`(str/upper (name k))`) would
   silently mint plausible-looking ids like \"FRA\" for jurisdictions
   nobody has researched, and a fabricated id that misses the catalog is
   indistinguishable from a real one that does."
