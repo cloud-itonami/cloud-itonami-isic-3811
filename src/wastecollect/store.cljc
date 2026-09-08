@@ -25,7 +25,7 @@
   The ledger stays append-only on every backend — 'who scheduled/recorded
   what, on what facility capacity/classification basis' is always a query
   over an immutable log."
-  (:require [clojure.string :as str]
+  (:require [kotoba.lang.text :as str]
             [langchain.db :as d]
             [langchain-store.core :as ls]))
 
