@@ -34,7 +34,7 @@ hazardous-waste handling, storage or transport (see
 `docs/adr/0001-architecture.md`) — a pickup carrying ANY hazard flag is
 structurally rejected by the hazard-misclassification-gate, at any
 confidence, regardless of phase. Classification claims must cite a real
-regulatory-framework-grounded basis (`src/wastecollect/facts.cljc`): US
+regulatory-framework-grounded basis (`src/wastecollect/facts.cljk`): US
 RCRA, EU Waste Framework Directive, or Japan's 廃棄物処理法.
 
 ## Consuming this actor from another blueprint
