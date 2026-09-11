@@ -13,7 +13,7 @@
     op6  施設の許可容量を超過するpickup                     → facility-permit-capacity REJECT → hold
     op7  大口(bulk)pickup(出典・容量は正常でも人間承認)     → escalate → approve → commit
 
-  Run: clojure -M:dev:run"
+  Run: kbb -M:dev:run"
   (:require [langgraph.graph :as g]
             [wastecollect.store :as store]
             [wastecollect.operation :as op]

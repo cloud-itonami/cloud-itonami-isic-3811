@@ -103,14 +103,14 @@ intake → advise → govern → decide ─┬─ commit ───────�
   が参照)。
 - **append-ledger!**: 全 commit/reject/開示を**不変台帳**に積む。
 
-## 6. デモ(`clojure -M:dev:run`)
+## 6. デモ(`kbb -M:dev:run`)
 
 `src/wastecollect/sim.cljk` が8操作を actor に通す(§sim.cljc docstring
 参照): 正当なスケジュール → commit、出典なし → hold、tier超過/未契約の
 開示 → hold ×2、危険物フラグ → hold、紛争申立て → 人間承認 → commit、
 施設容量超過 → hold、大口pickup → 人間承認 → commit。
 
-## 7. テスト(`clojure -M:dev:test`)
+## 7. テスト(`kbb -M:dev:test`)
 
 `test/wastecollect/policy_contract_test.cljk` が**ガバナンス契約を実行可能**
 にする。`test/wastecollect/phase_test.cljk` が段階導入と「紛争は恒久的に

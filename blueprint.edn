@@ -38,8 +38,8 @@
   (wastecollect.phase), conservative default-phase=1 from initial
   implementation, that can only narrow — never widen — what the governor
   already allows. 33 tests / 126 assertions green
-  (`clojure -M:dev:test`), clj-kondo 0 errors/warnings
-  (`clojure -M:lint`), demo runnable end-to-end (`clojure -M:dev:run`,
+  (`kbb -M:dev:test`), clj-kondo 0 errors/warnings
+  (`kbb -M:lint`), demo runnable end-to-end (`kbb -M:dev:run`,
   8-operation walkthrough through one OperationActor). Deliberately
   distinct from cloud-itonami-isic-3822 (treatment/disposal of hazardous
   waste): this actor dispatches non-hazardous streams only, 3822 treats/
