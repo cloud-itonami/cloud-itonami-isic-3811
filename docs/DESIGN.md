@@ -31,9 +31,9 @@ WasteDispatchSystem (root supervisor)
 ├── ManifestActor ……… 収集後の実重量記録(:manifest/record)
 │
 ├── OperationActor[op] … ★ 1操作 = 1 actor run; WasteDispatch-LLM 封じ込め ★
-│     ├── WasteDispatch-LLM (sealed)  proposal only(src/wastecollect/llm.cljc)
-│     ├── WasteDispatchGovernor       INDEPENDENT ゲート(src/wastecollect/policy.cljc)
-│     ├── Committer                    SSoT/台帳への書き込み(src/wastecollect/store.cljc)
+│     ├── WasteDispatch-LLM (sealed)  proposal only(src/wastecollect/llm.cljk)
+│     ├── WasteDispatchGovernor       INDEPENDENT ゲート(src/wastecollect/policy.cljk)
+│     ├── Committer                    SSoT/台帳への書き込み(src/wastecollect/store.cljk)
 │     └── Recorder                     監査台帳(append-only)
 │
 ├── ReviewActor ……… 人間レビュー(bulk pickup・紛争申立ての interrupt を受ける)
@@ -52,7 +52,7 @@ WasteDispatchSystem (root supervisor)
 
 ## 3. OperationActor 内部(WasteDispatch-LLM ラッパー)
 
-`src/wastecollect/operation.cljc` の langgraph-clj StateGraph として実装。
+`src/wastecollect/operation.cljk` の langgraph-clj StateGraph として実装。
 **1 run = 1 操作** — 有界で監査可能、無限内部ループを持たない。
 
 ```
@@ -77,7 +77,7 @@ intake → advise → govern → decide ─┬─ commit ───────�
 
 ## 4. WasteDispatchGovernor(独立検閲層)
 
-`src/wastecollect/policy.cljc`。LLM とは別経路で、提案を可決/拒否/escalate
+`src/wastecollect/policy.cljk`。LLM とは別経路で、提案を可決/拒否/escalate
 に判定する。判定の優先順位(上が強い、HARD は人間承認でも上書き不可):
 
 1. **RBAC**
@@ -94,7 +94,7 @@ intake → advise → govern → decide ─┬─ commit ───────�
 
 ## 5. SSoT と監査台帳
 
-`src/wastecollect/store.cljc`。dev は in-mem の EDN 事実層(本番は Datomic)。
+`src/wastecollect/store.cljk`。dev は in-mem の EDN 事実層(本番は Datomic)。
 
 - **entities**: `generators` `facilities`(waste-class別の日次許可容量)
   `pickups` `manifests` `contracts`(client billing)。
@@ -105,14 +105,14 @@ intake → advise → govern → decide ─┬─ commit ───────�
 
 ## 6. デモ(`clojure -M:dev:run`)
 
-`src/wastecollect/sim.cljc` が8操作を actor に通す(§sim.cljc docstring
+`src/wastecollect/sim.cljk` が8操作を actor に通す(§sim.cljc docstring
 参照): 正当なスケジュール → commit、出典なし → hold、tier超過/未契約の
 開示 → hold ×2、危険物フラグ → hold、紛争申立て → 人間承認 → commit、
 施設容量超過 → hold、大口pickup → 人間承認 → commit。
 
 ## 7. テスト(`clojure -M:dev:test`)
 
-`test/wastecollect/policy_contract_test.clj` が**ガバナンス契約を実行可能**
-にする。`test/wastecollect/phase_test.clj` が段階導入と「紛争は恒久的に
-人間専用」を保証。`test/wastecollect/facts_test.clj` が分類根拠カタログ
+`test/wastecollect/policy_contract_test.cljk` が**ガバナンス契約を実行可能**
+にする。`test/wastecollect/phase_test.cljk` が段階導入と「紛争は恒久的に
+人間専用」を保証。`test/wastecollect/facts_test.cljk` が分類根拠カタログ
 自体の正直さ(捏造禁止)を保証。

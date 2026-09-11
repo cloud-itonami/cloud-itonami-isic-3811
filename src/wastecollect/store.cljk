@@ -10,7 +10,7 @@
                        by swapping `langchain.db`'s `:db-api`.
 
   Both implement the same protocol and pass the same contract
-  (test/wastecollect/store_contract_test.clj) — the actor, the
+  (test/wastecollect/store_contract_test.cljk) — the actor, the
   WasteDispatchGovernor and the audit ledger never know which SSoT they
   run on.
 
