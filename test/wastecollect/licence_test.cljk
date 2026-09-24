@@ -1,7 +1,7 @@
 (ns wastecollect.licence-test
   "carrier-licence-gate — 『この pickup は安全か』ではなく
   『そもそも運搬してよいのか』を問う HARD gate の契約。"
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [wastecollect.licence :as licence]
             [wastecollect.policy :as policy]
             [wastecollect.store :as store]))
