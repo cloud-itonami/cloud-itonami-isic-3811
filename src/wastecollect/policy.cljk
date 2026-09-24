@@ -54,7 +54,7 @@
     9. dispute requests             — a generator/facility dispute NEVER
                                       auto-resolves, at any confidence, any
                                       phase."
-  (:require [clojure.set :as set]
+  (:require [kotoba.lang.coll :as set]
             [wastecollect.facts :as facts]
             [wastecollect.licence :as licence]
             [wastecollect.store :as store]))
